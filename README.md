@@ -1,196 +1,185 @@
-# Adaptive Diagnostic Engine
+# CAT — Computer Adaptive Test Engine
 
-A 1-Dimension Adaptive Testing system that dynamically selects questions based on a student's performance using Item Response Theory (IRT).
-
----
-
-## Prerequisites
-
-- Python 3.11+
-- MongoDB running locally
-- A free Groq API key from https://console.groq.com
+An AI-powered adaptive testing platform that dynamically generates, evaluates, and serves questions tailored to each student's ability in real time — built on Item Response Theory and a multi-node LLM pipeline.
 
 ---
 
-## Setup and Installation
+## What is CAT?
 
-Clone the repository and install dependencies:
-```bash
-git clone https://github.com/pratyakshagarwal/HighScores_Assignment.git
-pip install -r requirements.txt
+Most practice platforms give everyone the same questions. CAT doesn't.
+
+CAT tracks your ability as you answer, and every question it generates is calibrated to your current level — not too easy, not too hard. Get something right and the next question gets harder. Get it wrong and it recalibrates. Over time, it builds a precise picture of where you're strong and where you need work, then generates a personalized study plan.
+
+---
+
+## How it works
+
+### Adaptive Engine (IRT)
+CAT uses a 2-Parameter Item Response Theory model to track student ability. Every answer updates your ability score using:
+
+```
+P(correct) = 1 / (1 + e ^ (−discrimination × (ability − difficulty)))
+new_ability = ability + learning_rate × discrimination × (result − P(correct))
 ```
 
-Create a `.env` file in the root directory:
+Questions are selected to maximize Fisher Information at your current ability — meaning every question is the one that will tell us the most about you.
+
+### LLM Question Pipeline (LangGraph)
+Questions aren't pulled from a static bank — they're generated fresh by a 4-node LangGraph pipeline:
+
 ```
-MONGO_URI=mongodb://localhost:27017
-DB_NAME=adaptive_test
-GROQ_API_KEY=your_groq_api_key_here
-GROQ_MODEL=llama-3.1-8b-instant
+gen_q → gen_opt → gen_exp → eval
+          ↑          ↑        ↑
+          └──────────┴────────┘
+              retry if score < threshold
 ```
 
-Seed the database with questions:
-```bash
-python seed_questions.py
-```
+- **gen_q** — generates a question matched to your difficulty and topic
+- **gen_opt** — generates 4 options with plausible distractors
+- **gen_exp** — generates a clean explanation of the correct answer
+- **eval** — scores all three components (0.0 → 1.0) and triggers selective regeneration if any fall below threshold
 
-Start the FastAPI backend:
-```bash
-uvicorn app.main:app --reload
-```
+Only the failing component gets regenerated — no wasted LLM calls.
 
-In a second terminal, start the Streamlit frontend:
-```bash
-streamlit run frontend.py
-```
+---
 
-Open your browser at http://localhost:8501
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Backend | FastAPI |
+| Database | PostgreSQL + SQLAlchemy |
+| LLM Orchestration | LangGraph + LangChain |
+| LLM Provider | Groq (Llama 3.3 70B) |
+| Frontend | HTML + CSS |
+| Adaptive Algorithm | Custom IRT Engine |
+
+---
+
+## Features
+
+- Real-time difficulty adaptation per student session
+- AI-generated questions, options, and explanations — no static question bank
+- Self-evaluating pipeline with automatic retry on quality failure
+- Topic distribution tracking to avoid repetition
+- Session insights with personalized AI study plan
+- Clean REST API — easy to integrate with any frontend
 
 ---
 
 ## Project Structure
+
 ```
-adaptive-diagnostic-engine/
-├── app/
-│   ├── main.py          # FastAPI app entry point
-│   ├── routes.py        # API endpoints
-│   ├── adaptive.py      # IRT algorithm logic
-│   ├── insight.py       # Session analysis and LLM study plan
-│   ├── database.py      # MongoDB connection
-│   └── models.py        # Pydantic models
-├── seed_questions.py              # Database seeder (50 questions)
-├── frontend.py          # Streamlit UI
-├── .env                 # Environment variables (not committed)
-└── requirements.txt
+CAT/
+├── backend/
+│   ├── app/
+│   │   ├── main.py              # FastAPI entry point
+│   │   ├── routes.py            # API endpoints
+│   │   ├── llm_questions.py     # LangGraph pipeline
+│   │   ├── generator_llm.py     # Question generation node
+│   │   ├── options_llm.py       # Options generation node
+│   │   ├── explanation_llm.py   # Explanation generation node
+│   │   ├── evaluator_llm.py     # Eval + retry routing node
+│   │   ├── irt_lite.py          # IRT adaptive engine
+│   │   ├── llm_insight.py       # Study plan generation
+│   │   ├── db_models.py         # SQLAlchemy models
+│   │   └── schemas.py           # Pydantic schemas
+│   ├── requirements.txt
+│   └── .env
+├── frontend/
+│   └── index.html
+├── notebooks/
+│   └── 0_workflow.ipynb
+└── README.md
 ```
 
 ---
 
-## Adaptive Algorithm Logic
+## Getting Started
 
-The system uses a 2-Parameter Item Response Theory (2PL IRT) model.
+### Prerequisites
+- Python 3.11+
+- PostgreSQL
+- A free Groq API key from [console.groq.com](https://console.groq.com)
 
-**Starting point:** Every student begins with an ability score of 0.5 (range 0.0 to 1.0).
+### Installation
 
-**Probability of correct answer:** For each question, the probability that a student with a given ability answers correctly is calculated using the logistic function:
-```
-P(correct) = 1 / (1 + e ^ (-discrimination * (ability - difficulty)))
-```
-
-Where difficulty and discrimination are stored per question in MongoDB.
-
-**Ability update after each answer:** After every response, the student's ability is updated using a gradient-based rule:
-```
-new_ability = ability + learning_rate * discrimination * (result - P(correct))
-```
-
-- If the student answers correctly, result = 1, so ability increases.
-- If incorrect, result = 0, so ability decreases.
-- The learning rate scales down for high-discrimination questions to prevent large jumps.
-
-**Question selection:** Instead of simply picking the nearest difficulty, the system selects the question with the highest Fisher Information at the student's current ability level:
-```
-Information = discrimination^2 * P * (1 - P)
+```bash
+git clone https://github.com/yourusername/CAT.git
+cd CAT/backend
+python -m venv venv
+source venv/Scripts/activate  # Windows
+pip install -r requirements.txt
 ```
 
-A question is most informative when P is close to 0.5, meaning the difficulty closely matches the student's ability. This is the standard approach used in Computerized Adaptive Testing (CAT).
+### Environment Setup
+
+Create a `.env` file inside `backend/`:
+
+```env
+DATABASE_URL=postgresql://user:password@localhost:5432/cat_db
+GROQ_API_KEY=your_groq_api_key_here
+GROQ_MODEL=llama-3.3-70b-versatile
+MAX_RETRIES=3
+PASS_THRESHOLD=0.7
+```
+
+### Run
+
+```bash
+cd backend
+uvicorn app.main:app --reload
+```
+
+Open [http://localhost:8000/docs](http://localhost:8000/docs) for the interactive API docs.
 
 ---
 
-## AI Log
+## API Reference
 
-**How AI tools were used:**
+### `POST /start-session`
+Start a new test session.
 
-Claude was used through the development of this project as a coding assistant. The primary areas where it accelerated development were:
-
-- Generating the initial 50 question seed data with correct difficulty, discrimination, and tags metadata across 6 topics
-- Writing the LangChain prompt template and Groq integration to replace the original Ollama setup
-- Adding proper error handling across all files — HTTPException usage, PyMongoError catching, and input validation
-
-**What AI could not solve directly:**
-
-- The ability score was always increasing regardless of wrong answers. This was a bug where the discrimination parameter was never being passed to update_ability from routes.py, so the function was silently using a wrong default. Claude identified the root cause only after being shown both files together and asked to compare the function signatures.
-- Deciding to swap from Ollama to Groq required a judgment call about what would be practical for an evaluator to set up. Claude provided the options but the decision was made manually.
-- Tuning the learning rate formula and the proximity penalty weight in question selection required manual testing against the live API to feel right. Claude provided the formula but the constants were adjusted by hand.
-
----
-
-## API Documentation
-
-Base URL: `http://localhost:8000/api`
-
-### POST /start-session
-
-Creates a new test session for a student.
-
-Request body: none
-
-Response:
 ```json
-{
-  "session_id": "64f1a2b3c4d5e6f7a8b9c0d1"
-}
+// Request
+{ "subjects": ["Python", "Deep Learning"], "topics": ["CNN", "RNN"], "exam": "AI Engineer Interview" }
+
+// Response
+{ "session_id": "uuid", "user_hash": "uuid" }
+```
+
+### `POST /generate_questions`
+Generate the next adaptive question for a session.
+
+```json
+// Request
+{ "session_id": "uuid" }
+
+// Response
+{ "q_text": "...", "options": {"A": "...", "B": "...", "C": "...", "D": "..."}, "difficulty": 0.6, "topic": "CNN" }
+```
+
+### `POST /submit-answer`
+Submit an answer and update ability score.
+
+```json
+// Request
+{ "session_id": "uuid", "question_id": "uuid", "user_answer": "B" }
+
+// Response
+{ "correct": true, "correct_answer": "B", "explanation": "...", "new_difficulty": 0.65 }
+```
+
+### `GET /get_insights/{session_id}`
+Get performance analytics and an AI-generated study plan.
+
+```json
+// Response
+{ "insight": "Based on your session, you're strong in CNNs but struggling with LSTM gating mechanisms..." }
 ```
 
 ---
 
-### GET /next-question/{session_id}
+## License
 
-Returns the next best question for the student based on their current ability.
-
-Response:
-```json
-{
-  "question_id": "64f1a2b3c4d5e6f7a8b9c0d2",
-  "question": "Solve for x: 3x + 9 = 0",
-  "options": {"A": "3", "B": "-3", "C": "0", "D": "-9"},
-  "difficulty": 0.2,
-  "topic": "Algebra"
-}
-```
-
----
-
-### POST /submit-answer
-
-Submits a student's answer and updates their ability score.
-
-Request body:
-```json
-{
-  "session_id": "64f1a2b3c4d5e6f7a8b9c0d1",
-  "question_id": "64f1a2b3c4d5e6f7a8b9c0d2",
-  "answer": "B"
-}
-```
-
-Response:
-```json
-{
-  "correct": true,
-  "new_ability": 0.573
-}
-```
-
----
-
-### GET /finish-test/{session_id}
-
-Ends the test, analyzes performance, and returns a personalized AI study plan.
-
-Response:
-```json
-{
-  "final_ability": 0.68,
-  "ability_trajectory": [0.5, 0.53, 0.61, 0.68],
-  "ability_variance": 0.004,
-  "total_correct": 7,
-  "total_attempted": 10,
-  "max_streak": 4,
-  "avg_difficulty_attempted": 0.55,
-  "topic_stats": {},
-  "topic_accuracy": {},
-  "weak_topics": ["Vocabulary", "Arithmetic"],
-  "strong_topics": ["Algebra", "Geometry"],
-  "study_plan": "..."
-}
-```
+MIT
