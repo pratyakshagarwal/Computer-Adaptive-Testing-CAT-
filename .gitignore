@@ -1,1 +1,16 @@
-__pycache__
+# Python
+__pycache__/
+*.pyc
+*.pyo
+catenv/
+flow
+.claude
+
+# Environment
+.env
+
+# Junk
+todo.md
+
+# Notebooks (optional, remove this line if you want notebooks pushed)
+notebooks/
