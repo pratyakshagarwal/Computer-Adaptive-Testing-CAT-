@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pymongo
+python-dotenv
+psycopg2
+openai
+langchain_groq
+langchain
+sqlalchemy
