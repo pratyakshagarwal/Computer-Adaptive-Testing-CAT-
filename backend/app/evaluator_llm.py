@@ -3,12 +3,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_groq import ChatGroq
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 from app.schemas import Option_Schema, Question_Schema, Explain_Schema, Eval_Schema, _difficulty_label
 
-GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-GROQ_MODEL   = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_MODEL   = os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
 THRESHOLD = float(os.getenv("PASS_THRESHOLD", 0.7)) 
 
 EVAL_SYSTEM = """
@@ -66,7 +66,7 @@ def eval_node(state: dict) -> dict:
 
     options_str = " | ".join([f"{k}: {v}" for k, v in opt.opt.items()])
     
-    _llm      = ChatGroq(model=GROQ_MODEL, temperature=0.0, api_key=GROQ_API_KEY)
+    _llm      =  ChatGoogleGenerativeAI(model=GEMINI_MODEL, temperature=0.3, api_key=GEMINI_API_KEY)
     _eval_llm = _llm.with_structured_output(Eval_Schema)
 
     response = (_eval_prompt | _eval_llm).invoke({
