@@ -9,20 +9,10 @@ from sqlalchemy.orm import declarative_base, sessionmaker, Session
 
 load_dotenv()
 
-import os
 DATABASE_URL = os.getenv("DATABASE_URL", "")
-
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-
-# Force SSL for Supabase
-if "sslmode" not in DATABASE_URL:
-    DATABASE_URL += "?sslmode=require"
-
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,
-    connect_args={"sslmode": "require"}
 )
 SessionLocal = sessionmaker(bind=engine)
 Base = declarative_base()
