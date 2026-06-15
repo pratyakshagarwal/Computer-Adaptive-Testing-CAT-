@@ -8,7 +8,7 @@ from langchain_groq import ChatGroq
 from app.schemas import Option_Schema, Question_Schema, Explain_Schema, _difficulty_label
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-GROQ_MODEL   = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+GROQ_MODEL   = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
 
 EXPLAIN_SYSTEM = """
