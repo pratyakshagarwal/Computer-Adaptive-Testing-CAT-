@@ -2,6 +2,8 @@
 
 An AI-powered adaptive testing platform that dynamically generates, evaluates, and serves questions tailored to each student's ability in real time — built on Item Response Theory and a multi-node LLM pipeline.
 
+**Live Demo:** [your-vercel-url.vercel.app](https://your-vercel-url.vercel.app)
+
 ---
 
 ## What is CAT?
@@ -48,11 +50,12 @@ Only the failing component gets regenerated — no wasted LLM calls.
 | Layer | Technology |
 |---|---|
 | Backend | FastAPI |
-| Database | PostgreSQL + SQLAlchemy |
+| Database | PostgreSQL + SQLAlchemy (Supabase) |
 | LLM Orchestration | LangGraph + LangChain |
-| LLM Provider | Groq (Llama 3.3 70B) |
-| Frontend | HTML + CSS |
+| LLM Provider | Google Gemini 2.0 Flash |
+| Frontend | HTML + CSS (Vercel) |
 | Adaptive Algorithm | Custom IRT Engine |
+| Hosting | Railway (backend) + Vercel (frontend) |
 
 ---
 
@@ -99,8 +102,8 @@ CAT/
 
 ### Prerequisites
 - Python 3.11+
-- PostgreSQL
-- A free Groq API key from [console.groq.com](https://console.groq.com)
+- PostgreSQL (or a free [Supabase](https://supabase.com) project)
+- A free Gemini API key from [aistudio.google.com](https://aistudio.google.com/apikey)
 
 ### Installation
 
@@ -118,11 +121,13 @@ Create a `.env` file inside `backend/`:
 
 ```env
 DATABASE_URL=postgresql://user:password@localhost:5432/cat_db
-GROQ_API_KEY=your_groq_api_key_here
-GROQ_MODEL=llama-3.3-70b-versatile
+GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_MODEL=gemini-2.0-flash
 MAX_RETRIES=3
 PASS_THRESHOLD=0.7
 ```
+
+> **Note:** If your database password contains special characters like `@`, URL-encode them (e.g. `@` → `%40`) in the `DATABASE_URL`.
 
 ### Run
 
@@ -132,6 +137,25 @@ uvicorn app.main:app --reload
 ```
 
 Open [http://localhost:8000/docs](http://localhost:8000/docs) for the interactive API docs.
+
+---
+
+## Deployment
+
+| Service | Purpose |
+|---|---|
+| [Railway](https://railway.app) | Backend (FastAPI) |
+| [Supabase](https://supabase.com) | PostgreSQL database |
+| [Vercel](https://vercel.com) | Frontend (index.html) |
+
+For Railway, set the following environment variables:
+```
+DATABASE_URL=your_supabase_session_pooler_url
+GEMINI_API_KEY=your_gemini_api_key
+GEMINI_MODEL=gemini-2.0-flash
+```
+
+> **Supabase tip:** Use the **Session Pooler** connection string from Supabase → Settings → Database → Connection Pooling. The direct connection URL uses IPv6 which Railway doesn't support.
 
 ---
 
@@ -175,7 +199,7 @@ Get performance analytics and an AI-generated study plan.
 
 ```json
 // Response
-{ "insight": "Based on your session, you're strong in CNNs but struggling with LSTM gating mechanisms..." }
+{ "insight": [{ "type": "text", "text": "Based on your session..." }] }
 ```
 
 ---
