@@ -4,13 +4,13 @@ from pydantic import BaseModel, Field
 from typing import Dict
 
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_groq import ChatGroq
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 
 load_dotenv()
 
-GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
-GROQ_MODEL: str = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_MODEL   = os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
 
 
 system_prompt = """
@@ -57,7 +57,8 @@ prompt_template = ChatPromptTemplate.from_messages([
 ])
 
 
-I_LLM = ChatGroq(model=GROQ_MODEL, temperature=0.7, api_key=GROQ_API_KEY)
+
+I_LLM   = ChatGoogleGenerativeAI(model=GEMINI_MODEL, temperature=0.3, api_key=GEMINI_API_KEY)
 
 def generate_plan(state):
 
