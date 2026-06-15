@@ -2,7 +2,7 @@
 
 An AI-powered adaptive testing platform that dynamically generates, evaluates, and serves questions tailored to each student's ability in real time — built on Item Response Theory and a multi-node LLM pipeline.
 
-**Live Demo:** [your-vercel-url.vercel.app](https://your-vercel-url.vercel.app)
+**Live Demo:** [your-vercel-url.vercel.app](https://computer-adaptive-testing-cat.vercel.app/)
 
 ---
 
