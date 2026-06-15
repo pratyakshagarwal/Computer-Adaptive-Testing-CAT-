@@ -2,19 +2,261 @@
 <html>
 <head>
   <title>CAT Assessment</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f8fc;
+      --card: #ffffff;
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --text: #1e1e2e;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --correct: #16a34a;
+      --wrong: #dc2626;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px 16px 60px;
+    }
+
+    #app {
+      width: 100%;
+      max-width: 640px;
+    }
+
+    h2 {
+      font-family: 'Sora', sans-serif;
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 28px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.15s;
+      background: #fafafa;
+    }
+
+    input[type="text"]:focus, input[type="number"]:focus {
+      border-color: var(--primary);
+      background: #fff;
+    }
+
+    .field { margin-bottom: 18px; }
+
+    .hint {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 5px;
+    }
+
+    .notice {
+      background: #eef2ff;
+      border-left: 3px solid var(--primary);
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-size: 0.83rem;
+      color: #3730a3;
+      margin-bottom: 22px;
+      line-height: 1.5;
+    }
+
+    button {
+      display: inline-block;
+      padding: 11px 24px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    button:hover { background: var(--primary-hover); }
+
+    .meta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 99px;
+      background: #f3f4f6;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .progress-bar-wrap {
+      background: var(--border);
+      border-radius: 99px;
+      height: 5px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 99px;
+      transition: width 0.3s ease;
+    }
+
+    .q-text {
+      font-size: 1.05rem;
+      line-height: 1.65;
+      margin-bottom: 20px;
+    }
+
+    ul.options {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+
+    ul.options li label {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 400;
+      text-transform: none;
+      letter-spacing: 0;
+      color: var(--text);
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    ul.options li label:hover {
+      border-color: var(--primary);
+      background: #f5f3ff;
+    }
+
+    ul.options li input[type="radio"] {
+      margin-top: 3px;
+      accent-color: var(--primary);
+      flex-shrink: 0;
+    }
+
+    .feedback-correct {
+      color: var(--correct);
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+    }
+
+    .feedback-wrong {
+      color: var(--wrong);
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+    }
+
+    .correct-ans {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .explanation {
+      font-size: 0.93rem;
+      line-height: 1.6;
+      background: #f9fafb;
+      border-radius: 8px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    #msg {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+
+    .results-insight {
+      font-size: 0.95rem;
+      line-height: 1.75;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 18px 0;
+    }
+
+    .q-counter {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+  </style>
 </head>
 <body>
-
   <div id="app"></div>
 
   <script>
-    const API = "cat-production-fc0b.up.railway.app";
+    const API = "http://127.0.0.1:8000";
     let session_id = null;
     let question_id = null;
     let question_count = 0;
-    const MAX_QUESTIONS = 2;
+    let MAX_QUESTIONS = 10;
 
-    // ── render helpers ──────────────────────────────
     function render(html) {
       document.getElementById("app").innerHTML = html;
     }
@@ -23,26 +265,54 @@
     function showStart() {
       render(`
         <h2>CAT Assessment</h2>
-        <label>Exam:</label><br>
-        <input id="exam" placeholder="JEE" /><br><br>
+        <p class="subtitle">Adaptive testing powered by AI</p>
 
-        <label>Subjects (comma separated):</label><br>
-        <input id="subjects" placeholder="Physics, Chemistry" /><br><br>
+        <div class="notice">
+          📝 <strong>For best results:</strong> Be specific with subjects and topics — e.g., <em>"Electrostatics, Current Electricity"</em> instead of just <em>"Physics"</em>. The first question may take a moment to generate; it gets faster after that.
+        </div>
 
-        <label>Topics (comma separated):</label><br>
-        <input id="topics" placeholder="Mechanics, Optics" /><br><br>
+        <div class="card">
+          <div class="field">
+            <label>Exam</label>
+            <input type="text" id="exam" placeholder="e.g. JEE, NEET, UPSC" />
+          </div>
 
-        <button onclick="startSession()">Start Test</button>
-        <p id="msg"></p>
+          <div class="field">
+            <label>Subjects</label>
+            <input type="text" id="subjects" placeholder="e.g. Physics, Chemistry, Mathematics" />
+            <p class="hint">Separate multiple subjects with a comma.</p>
+          </div>
+
+          <div class="field">
+            <label>Topics</label>
+            <input type="text" id="topics" placeholder="e.g. Kinematics, Organic Chemistry, Integration" />
+            <p class="hint">More detail = better questions. E.g. "Newton's Laws, Projectile Motion".</p>
+          </div>
+
+          <div class="field">
+            <label>Number of Questions</label>
+            <input type="number" id="maxq" value="10" min="1" max="50" />
+            <p class="hint">How many questions do you want in this session?</p>
+          </div>
+
+          <button onclick="startSession()">Start Test</button>
+          <p id="msg"></p>
+        </div>
       `);
     }
 
     async function startSession() {
-      const exam = document.getElementById("exam").value;
-      const subjects = document.getElementById("subjects").value.split(",").map(s => s.trim());
-      const topics = document.getElementById("topics").value.split(",").map(t => t.trim());
+      const exam = document.getElementById("exam").value.trim();
+      const subjects = document.getElementById("subjects").value.split(",").map(s => s.trim()).filter(Boolean);
+      const topics = document.getElementById("topics").value.split(",").map(t => t.trim()).filter(Boolean);
+      MAX_QUESTIONS = parseInt(document.getElementById("maxq").value) || 10;
 
-      document.getElementById("msg").innerText = "Starting...";
+      if (!exam || !subjects.length || !topics.length) {
+        document.getElementById("msg").innerText = "Please fill in all fields.";
+        return;
+      }
+
+      document.getElementById("msg").innerText = "Starting your session…";
 
       const res = await fetch(`${API}/start-session`, {
         method: "POST",
@@ -56,7 +326,13 @@
 
     // ── SCREEN 2: Question ───────────────────────────
     async function fetchQuestion() {
-      render(`<p>Loading question...</p>`);
+      render(`
+        <h2>CAT Assessment</h2>
+        <div class="card" style="text-align:center;padding:40px;">
+          <p style="color:var(--muted);">Generating your question…</p>
+          <p style="font-size:0.8rem;color:#aaa;margin-top:8px;">This may take a few seconds.</p>
+        </div>
+      `);
 
       const res = await fetch(`${API}/generate_questions`, {
         method: "POST",
@@ -69,43 +345,49 @@
     }
 
     function showQuestion(q) {
+      const progress = ((question_count) / MAX_QUESTIONS) * 100;
       const opts = Object.entries(q.options).map(([key, val]) => `
         <li>
           <label>
             <input type="radio" name="answer" value="${key}" />
-            <b>${key}.</b> ${val}
+            <span><b>${key}.</b> ${val}</span>
           </label>
         </li>
       `).join("");
 
       render(`
-        <p>Question ${question_count + 1} of ${MAX_QUESTIONS}</p>
-        <p>Subject: ${q.subject} | Topic: ${q.topic} | Difficulty: ${q.difficulty.toFixed(2)}</p>
-        <hr>
-        <p>${q.q_text}</p>
-        <ul style="list-style:none">${opts}</ul>
-        <button onclick="submitAnswer()">Submit</button>
-        <p id="msg"></p>
+        <h2>CAT Assessment</h2>
+        <p class="subtitle">Adaptive testing powered by AI</p>
+        <div class="progress-bar-wrap"><div class="progress-bar" style="width:${progress}%"></div></div>
+
+        <div class="card">
+          <p class="q-counter">Question ${question_count + 1} of ${MAX_QUESTIONS}</p>
+          <div class="meta">
+            <span class="badge">${q.subject}</span>
+            <span class="badge">${q.topic}</span>
+            <span class="badge">Difficulty: ${q.difficulty.toFixed(2)}</span>
+          </div>
+          <hr class="divider">
+          <p class="q-text">${q.q_text}</p>
+          <ul class="options">${opts}</ul>
+          <button onclick="submitAnswer()">Submit Answer</button>
+          <p id="msg"></p>
+        </div>
       `);
     }
 
     async function submitAnswer() {
       const selected = document.querySelector('input[name="answer"]:checked');
       if (!selected) {
-        document.getElementById("msg").innerText = "Please select an answer.";
+        document.getElementById("msg").innerText = "Please select an answer first.";
         return;
       }
-
-      document.getElementById("msg").innerText = "Submitting...";
+      document.getElementById("msg").innerText = "Submitting…";
 
       const res = await fetch(`${API}/submit-answer`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_id,
-          question_id,
-          user_answer: selected.value
-        })
+        body: JSON.stringify({ session_id, question_id, user_answer: selected.value })
       });
       const result = await res.json();
       question_count++;
@@ -114,43 +396,65 @@
 
     // ── SCREEN 3: Feedback ───────────────────────────
     function showFeedback(result) {
+      const done = question_count >= MAX_QUESTIONS;
       render(`
-        <p>${result.correct ? "✓ Correct!" : "✗ Wrong"}</p>
-        <p>Correct answer: ${result.correct_answer}</p>
-        <p>Explanation: ${result.explanation}</p>
-        <br>
-        <button onclick="${question_count >= MAX_QUESTIONS ? 'showResults()' : 'fetchQuestion()'}">
-          ${question_count >= MAX_QUESTIONS ? "View Results" : "Next Question"}
-        </button>
+        <h2>CAT Assessment</h2>
+        <p class="subtitle">Adaptive testing powered by AI</p>
+        <div class="progress-bar-wrap"><div class="progress-bar" style="width:${(question_count/MAX_QUESTIONS)*100}%"></div></div>
+
+        <div class="card">
+          <p class="${result.correct ? 'feedback-correct' : 'feedback-wrong'}">
+            ${result.correct ? '✓ Correct!' : '✗ Incorrect'}
+          </p>
+          <p class="correct-ans">Correct answer: <strong>${result.correct_answer}</strong></p>
+          <div class="explanation">${result.explanation}</div>
+          <button onclick="${done ? 'showResults()' : 'fetchQuestion()'}">
+            ${done ? 'View Results →' : 'Next Question →'}
+          </button>
+        </div>
       `);
     }
 
     // ── SCREEN 4: Results ────────────────────────────
     function formatInsight(text) {
-    return text
-      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")  // **bold**
-      .replace(/\n\n/g, "<br><br>")                       // paragraph breaks
-      .replace(/\n\* /g, "<br>• ")                        // bullet points
-      .replace(/\n(\d+)\. /g, "<br>$1. ");                // numbered lists
-    }
-    async function showResults() {
-      render(`<p>Generating your report...</p>`);
+  return text
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.*?)\*/g, "<em>$1</em>")
+    .replace(/### (.*?)(\n|$)/g, "<h3 style='font-family:Sora,sans-serif;font-size:1rem;margin:18px 0 8px;color:var(--text)'>$1</h3>")
+    .replace(/## (.*?)(\n|$)/g, "<h2 style='font-family:Sora,sans-serif;font-size:1.1rem;margin:20px 0 8px;color:var(--text)'>$1</h2>")
+    .replace(/\* (.*?)(\n|$)/g, "<div style='display:flex;gap:8px;margin:4px 0'><span>•</span><span>$1</span></div>")
+    .replace(/\n\n/g, "<br>")
+    .replace(/\n/g, " ");
+}
 
-      const res = await fetch(`${API}/get_insights/${session_id}`);
-      const data = await res.json();
+  async function showResults() {
+  render(`
+    <h2>CAT Assessment</h2>
+    <div class="card" style="text-align:center;padding:40px;">
+      <p style="color:var(--muted);">Preparing your report…</p>
+    </div>
+  `);
 
-      render(`
-        <h2>Test Complete</h2>
-        <hr>
-        <p>${formatInsight(data.insight || data.message)}</p>
-        <br>
-        <button onclick="location.reload()">Start Again</button>
-      `);
-    }
+  const res = await fetch(`${API}/get_insights/${session_id}`);
+  const data = await res.json();
 
-    // ── Boot ─────────────────────────────────────────
+  const insightText = Array.isArray(data.insight)
+    ? data.insight[0].text
+    : (data.insight || data.message || "No insights available.");
+
+  render(`
+    <h2>Session Complete</h2>
+    <p class="subtitle">Here's how you did across ${MAX_QUESTIONS} questions.</p>
+
+    <div class="card">
+      <div class="results-insight">${formatInsight(insightText)}</div>
+    </div>
+
+    <button onclick="location.reload()">Start a New Test</button>
+  `);
+}
+
     showStart();
   </script>
-
 </body>
 </html>
